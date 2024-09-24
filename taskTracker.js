@@ -7,6 +7,7 @@ const args = process.argv.slice(2);
 
 // valid commands array
 const commands = ["add", "update", "delete", "mark", "list"];
+// valid status array
 const status = ["in-progress", "done", "todo"]
 
 // no args
