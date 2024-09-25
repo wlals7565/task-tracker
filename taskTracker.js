@@ -8,11 +8,8 @@ const args = process.argv.slice(2);
 // valid commands array
 const commands = ["add", "update", "delete", "mark", "list"];
 // valid status array
-const status = ["in-progress", "done", "todo"]
+const status = ["in-progress", "done", "todo"];
 // valid args length
-const validLength = {
-  add: 2
-}
 
 // no args
 if (args.length <= 0) {
@@ -38,12 +35,12 @@ const jsonData = readJsonFile(filePath);
 
 // func
 // check args length
-const checkArgsLength = (args, length, errorMessage = 'wrong parameter') => {
-  if(args.length !== length) {
+const checkArgsLength = (args, length, errorMessage = "wrong parameter") => {
+  if (args.length !== length) {
     console.log(errorMessage);
-    return process.exit(1)
+    return process.exit(1);
   }
-}
+};
 // writefile
 const writefile = (jsonData) => {
   fs.writeFile(filePath, JSON.stringify(jsonData), (err) => {
@@ -53,19 +50,40 @@ const writefile = (jsonData) => {
     }
     console.log("success to write file");
   });
-}
+};
 // 업데이트 하는 부분
-
+const printTaskList = (statusOption = undefined) => {
+  if (!statusOption) {
+    if (jsonData.length == 0) {
+      console.log(`there is no task`);
+      process.exit(1);
+    } else {
+      console.table(jsonData);
+    }
+  } else {
+    if (!status.includes(statusOption)) {
+      console.log("wrong status");
+      return process.exit(1);
+    } else {
+      let newData = jsonData.filter((data) => data.status === statusOption);
+      if (newData.length == 0) {
+        console.log(`there is no task with status ${statusOption}`);
+        process.exit(1);
+      }
+      console.table(newData);
+    }
+  }
+};
 
 // not found task with id
 const notFoundTask = (id) => {
   console.log(`No task with id: ${id}`);
-    process.exit(1);
-}
+  process.exit(1);
+};
 
 // add
 if (command === "add") {
-  checkArgsLength(args, 2)
+  checkArgsLength(args, 2);
   let description = args[1];
   let lastId = jsonData[jsonData.length - 1]?.id || 0;
   let task = {
@@ -75,27 +93,27 @@ if (command === "add") {
     status: "todo",
     id: ++lastId,
   };
-  let newData = [...jsonData, task]
-  writefile(newData)
+  let newData = [...jsonData, task];
+  writefile(newData);
 }
 // update
 else if (command === "update") {
   checkArgsLength(args, 3);
 
-  let newData = [...jsonData]
+  let newData = [...jsonData];
 
   let updateTask;
   let updateTaskId = args[1];
 
-  for (let i=0; i<jsonData.length; i++) {
+  for (let i = 0; i < jsonData.length; i++) {
     if (updateTaskId == jsonData[i].id) {
       updateTask = {
         id: jsonData[i].id,
         description: args[2],
         createdAt: jsonData[i].createdAt,
         updatedAt: new Date(),
-        status: jsonData[i].status
-      }
+        status: jsonData[i].status,
+      };
       newData[i] = updateTask;
       break;
     }
@@ -104,44 +122,44 @@ else if (command === "update") {
     notFoundTask(updateTaskId);
   }
 
-  writefile(newData)
+  writefile(newData);
 }
 // delete
 else if (command === "delete") {
   checkArgsLength(args, 2);
   let currentLength = jsonData.length;
   let deleteTaskId = parseInt(args[1]);
-  let newData = jsonData.filter((task)=> task.id !== deleteTaskId);
+  let newData = jsonData.filter((task) => task.id !== deleteTaskId);
 
-  if(currentLength === newData.length) {
-    console.log(`No task with id: ${deleteTaskId}`)
-    process.exit(1)
+  if (currentLength === newData.length) {
+    console.log(`No task with id: ${deleteTaskId}`);
+    process.exit(1);
   }
   writefile(newData);
 }
 // mark
 else if (command === "mark") {
-  checkArgsLength(args, 3)
+  checkArgsLength(args, 3);
 
-  if(!status.includes(args[2])) {
-    console.log('wrong status');
+  if (!status.includes(args[2])) {
+    console.log("wrong status");
     return process.exit(1);
   }
 
-  let newData = [...jsonData]
-  
+  let newData = [...jsonData];
+
   let updateTask;
   let updateTaskId = args[1];
 
-  for (let i=0; i<jsonData.length; i++) {
+  for (let i = 0; i < jsonData.length; i++) {
     if (updateTaskId == jsonData[i].id) {
       updateTask = {
         id: jsonData[i].id,
         description: jsonData[i].description,
         createdAt: jsonData[i].createdAt,
-        updatedAt: jsonData[i].updatedAt,
-        status: args[2]
-      }
+        updatedAt: new Date(),
+        status: args[2],
+      };
       newData[i] = updateTask;
       break;
     }
@@ -156,32 +174,13 @@ else if (command === "mark") {
 // list
 else if (command === "list") {
   if (args.length === 1) {
-    if(jsonData.length == 0) {
-      console.log(`there is no task`);
-      process.exit(1);
-    }
-    for(let i=0; i<jsonData.length; i++){
-      console.log(jsonData[i]);
-    }
-  }
-  else if (args.length === 2){
+    printTaskList();
+  } else if (args.length === 2) {
     let statusOption = args[1];
-    if(!status.includes(statusOption)) {
-      console.log('wrong status');
-      return process.exit(1);
-    }
-    let newData = jsonData.filter((data) => data.status === statusOption);
-    if(newData.length == 0) {
-      console.log(`there is no task with status ${statusOption}`);
-      process.exit(1);
-    }
-    for(let i=0; i<newData.length; i++) {
-      console.log(newData[i]);
-    }
-  }
-  else {
-    console.log('wrong parameters');
-    process.exit(1)
+    printTaskList(statusOption);
+  } else {
+    console.log("wrong parameters");
+    process.exit(1);
   }
 }
 
